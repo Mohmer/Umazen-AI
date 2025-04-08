@@ -1,0 +1,67 @@
+# Root workspace configuration for cross-compiling Solana programs
+[target.bpfel-unknown-unknown.dependencies]
+core = { path = "sysroot/core" }
+compiler_builtins = { version = "0.1.80", features = ["rustc-dep-of-std"] }
+alloc = { path = "sysroot/alloc" }
+rustc_std_workspace-core = { path = "sysroot/rustc-std-workspace-core" }
+
+[target.x86_64-unknown-linux-gnu.dependencies]
+std = { path = "sysroot/std" }
+
+[target.wasm32-unknown-unknown.dependencies]
+std = { path = "sysroot/std-wasm" }
+
+[dependencies]
+# Custom sysroot components
+rustc-std-workspace-alloc = { path = "sysroot/rustc-std-workspace-alloc" }
+rustc-std-workspace-std = { path = "sysroot/rustc-std-workspace-std" }
+
+[target.'cfg(target_arch = "bpf")'.dependencies]
+solana-program = { version = "1.16.6", features = ["no-entrypoint"] }
+
+[target.'cfg(not(target_arch = "bpf"))'.dependencies]
+solana-program-test = "1.16.6"
+
+[build]
+# BPF-specific linker configuration
+rustflags = [
+    "-C", "linker=llvm-link",
+    "-C", "link-arg=--bpf",
+    "-C", "link-arg=-z", "notext",
+    "-C", "link-arg=-shared",
+    "-C", "link-arg=--no-check-dynamic-relocations",
+    "-C", "link-arg=--import-memory",
+]
+
+# Custom sysroot setup
+sysroot = "sysroot"
+stage = 2
+
+[profile.custom]
+inherits = "release"
+opt-level = 3
+lto = true
+codegen-units = 1
+debug = false
+panic = "abort"
+
+[features]
+# Memory management strategies
+default = ["compact-alloc"]
+compact-alloc = ["alloc/global-allocator", "alloc/alloc-error-handler"]
+large-page = ["alloc/large-page"]
+
+# Cryptographic acceleration
+secp256k1-accel = ["solana-program/secp256k1-program"]
+ed25519-accel = ["solana-program/ed25519-program"]
+
+[patch.crates-io]
+# Override core dependencies
+core = { path = "sysroot/core" }
+alloc = { path = "sysroot/alloc" }
+compiler_builtins = { git = "https://github.com/rust-lang/compiler-builtins", rev = "f9e4a76" }
+
+[env]
+RUST_TARGET_PATH = "${CARGO_MANIFEST_DIR}/targets"
+SOLANA_SDK = "1.16.6"
+LLVM_VERSION = "15"
