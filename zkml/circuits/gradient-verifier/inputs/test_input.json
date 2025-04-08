@@ -1,0 +1,98 @@
+{
+  // ========================
+  // Public Inputs
+  // ========================
+  "model_hash": "185af665c37b2208cb2dc1e8d1a72a3d0c5c23a0a0b6e9c8c1e4e0c0d9f3d0a",
+  "training_config_hash": "9a3b4f1e2c8d7e6a5b43f8c1e0d9f3a2b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9",
+  
+  // ========================
+  // Private Inputs
+  // ========================
+  "initial_weights": [
+    // Layer 1 (784 weights)
+    [
+      12221, 8945,  -3134, 5671,  -9912, 2345,  6723,  -4456,  // First 8 weights
+      // ... (776 more weights with values between -10000 and 10000)
+    ],
+    // Layer 2 (128 weights)
+    [
+      -2345, 6789, 1123, -4456, 8912, -3345, 6678, 2234,
+      // ... (120 more weights)
+    ],
+    // Layer 3 (10 weights)
+    [
+      4567, -8912, 3345, -6678, 9123, -4456, 7789, 1122, -3344, 5566
+    ]
+  ],
+  
+  "input_data": [
+    // Batch 1 (784 features)
+    [
+      123, 45, -67, 89, -12, 34, -56, 78,  // First 8 features
+      // ... (776 more features)
+    ],
+    // ... 63 more batches following same structure
+  ],
+  
+  "labels": [
+    3, 7, 2, 8, 1, 9, 4, 0, 5, 6,  // First 10 labels
+    // ... 54 more labels (total 64)
+  ],
+  
+  "learning_rate": "0.05",  // Fixed-point representation
+  
+  // ========================
+  // Intermediate Values (for debugging)
+  // ========================
+  "__calculated_gradients": [
+    // Layer 1 gradients
+    [
+      12, -45, 78, -23, 56, -89, 34, -67,  // First 8 gradients
+      // ... (776 more gradients)
+    ],
+    // Layer 2 gradients
+    [
+      -23, 56, -12, 45, -78, 34, -89, 12,
+      // ... (120 more gradients)
+    ],
+    // Layer 3 gradients
+    [
+      45, -78, 23, -56, 89, -34, 67, -12, 34, -45
+    ]
+  ],
+  
+  "__expected_final_weights": [
+    // Layer 1 updated weights
+    [
+      12221 - 0.05*12, 8945 - 0.05*(-45), ..., 
+      // Full calculated values
+    ],
+    // Layer 2 updated weights
+    [
+      -2345 - 0.05*(-23), 6789 - 0.05*56, ...
+    ],
+    // Layer 3 updated weights
+    [
+      4567 - 0.05*45, -8912 - 0.05*(-78), ...
+    ]
+  ],
+  
+  "__expected_loss": "32456.78",  // Calculated MSE loss
+  
+  // ========================
+  // Proof Configuration
+  // ========================
+  "__protocol": "groth16",
+  "__curve": "bn128",
+  "__backend": "wasm",
+  
+  // ========================
+  // Validation Flags
+  // ========================
+  "__test_cases": {
+    "valid_training_step": true,
+    "invalid_model_hash": false,
+    "excessive_learning_rate": false,
+    "incorrect_gradients": false
+  }
+}
