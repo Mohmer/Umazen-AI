@@ -1,0 +1,114 @@
+{
+  "name": "umazen",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Decentralized AI Infrastructure on Solana - Secure Model Training & NFT Marketplace",
+  "scripts": {
+    "build": "npm-run-all build:*",
+    "build:program": "anchor build",
+    "build:client": "next build",
+    "build:zk": "circom ./zk/circuits/model_ownership.circom --r1cs --wasm --sym",
+    
+    "test": "npm-run-all test:*",
+    "test:program": "anchor test --skip-local-validator",
+    "test:client": "jest ./client",
+    "test:zk": "mocha ./zk/test/**/*.test.js",
+    
+    "start": "next start -p 3000",
+    "dev": "concurrently \"next dev\" \"solana-test-validator\"",
+    
+    "lint": "npm-run-all lint:*",
+    "lint:code": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:styles": "stylelint \"**/*.css\"",
+    
+    "format": "prettier --write .",
+    
+    "deploy": "npm-run-all deploy:*",
+    "deploy:program": "anchor deploy --provider.cluster mainnet",
+    "deploy:client": "next deploy",
+    
+    "generate": "npm-run-all generate:*",
+    "generate:types": "anchor-client-gen target/idl/umazen.json ./client/src/types/idl.ts",
+    "generate:zk": "ts-node ./zk/scripts/generate_verifiers.ts",
+    
+    "security": "npm audit --production && snyk test",
+    
+    "precommit": "lint-staged",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@project-serum/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.78.0",
+    "@metaplex-foundation/mpl-token-metadata": "^4.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^13.4.8",
+    "snarkjs": "0.6.11",
+    "circomlib": "2.0.3",
+    "ethers": "^5.7.2",
+    "@solana/spl-token": "^0.3.4",
+    "zod": "^3.21.4",
+    "axios": "^1.4.0",
+    "lodash": "^4.17.21",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "20.4.1",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
+    "typescript": "^5.1.6",
+    "@types/lodash": "^4.14.197",
+    "@types/mocha": "^10.0.1",
+    "@types/chai": "^4.3.5",
+    
+    "prettier": "^3.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-next": "^13.4.8",
+    "eslint-config-prettier": "^8.8.0",
+    "stylelint": "^15.10.1",
+    
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "jest": "^29.6.1",
+    "ts-node": "^10.9.1",
+    
+    "npm-run-all": "^4.1.5",
+    "concurrently": "^8.2.0",
+    "lint-staged": "^13.2.3",
+    "husky": "^8.0.3",
+    
+    "@snyk/protect": "^1.1134.0",
+    "solana-bankrun": "^0.1.16"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.json": [
+      "prettier --write"
+    ],
+    "**/*.css": [
+      "stylelint --fix"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "resolutions": {
+    "snapdragon-node": "2.1.1"
+  }
+}
