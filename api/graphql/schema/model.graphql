@@ -1,0 +1,309 @@
+# schema/model.graphql
+
+scalar DateTime
+scalar JSON
+
+# Core AI Model Types
+type ModelMetadata @entity {
+  id: ID! @unique
+  owner: String! # Solana address
+  modelHash: String! @unique
+  framework: String!
+  inputSchema: JSON!
+  outputSchema: JSON!
+  trainingParams: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  status: ModelStatus!
+  trainingTasks: [TrainingTask!]! @derivedFrom(field: "model")
+  marketListings: [MarketListing!]! @derivedFrom(field: "model")
+}
+
+enum ModelStatus {
+  DRAFT
+  TRAINING
+  TRAINED
+  PUBLISHED
+  ARCHIVED
+}
+
+# Training Infrastructure
+type TrainingTask @entity {
+  id: ID! @unique
+  model: ModelMetadata!
+  dataset: Dataset!
+  taskParams: JSON!
+  statusUpdates: [TaskStatusUpdate!]! @derivedFrom(field: "task")
+  createdBlock: Int!
+  startTime: DateTime
+  endTime: DateTime
+  cost: Float
+  node: NodeInfo
+  proof: ProofValidation
+}
+
+type TaskStatusUpdate @entity {
+  id: ID! @unique
+  task: TrainingTask!
+  phase: TaskPhase!
+  timestamp: DateTime!
+  log: String
+}
+
+enum TaskPhase {
+  PENDING
+  DATA_LOADING
+  TRAINING
+  VALIDATING
+  COMPLETED
+  FAILED
+}
+
+# Data Management
+type Dataset @entity {
+  id: ID! @unique
+  cid: String! @unique # IPFS content ID
+  metadata: JSON!
+  owner: String! # Solana address
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  permissionType: DataPermission!
+  allowedAccounts: [String!]! # Solana addresses
+  trainingTasks: [TrainingTask!]! @derivedFrom(field: "dataset")
+}
+
+enum DataPermission {
+  PRIVATE
+  PUBLIC
+  WHITELIST
+}
+
+# Inference Marketplace
+type MarketListing @entity {
+  id: ID! @unique
+  model: ModelMetadata!
+  price: Float!
+  licenseType: LicenseType!
+  seller: String! # Solana address
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  stats: MarketStats!
+  transactions: [TransactionHistory!]! @derivedFrom(field: "listing")
+}
+
+type MarketStats @entity(embedded: true) {
+  totalSales: Int!
+  totalRevenue: Float!
+  avgInferenceTime: Float
+  accuracyRating: Float
+}
+
+enum LicenseType {
+  SINGLE_USE
+  SUBSCRIPTION
+  ENTERPRISE
+}
+
+# Blockchain Transactions
+type TransactionHistory @entity {
+  id: ID! @unique
+  txHash: String! @unique
+  type: TransactionType!
+  amount: Float!
+  from: String! # Solana address
+  to: String! # Solana address
+  timestamp: DateTime!
+  listing: MarketListing
+  inferenceRequest: InferenceRequest
+}
+
+enum TransactionType {
+  MODEL_PURCHASE
+  INFERENCE_PAYMENT
+  STAKING
+  REWARD
+}
+
+# ZK Proof System
+type ProofValidation @entity {
+  id: ID! @unique
+  proofHash: String! @unique
+  model: ModelMetadata!
+  verifier: String! # Solana address
+  createdAt: DateTime!
+  verificationResult: VerificationResult!
+  gasUsed: Float!
+  proofData: JSON!
+}
+
+type VerificationResult @entity(embedded: true) {
+  isValid: Boolean!
+  errorMessage: String
+  verificationTime: Float
+  verifiedBlock: Int!
+}
+
+# Compute Node Network
+type NodeInfo @entity {
+  id: ID! @unique
+  owner: String! # Solana address
+  stakedAmount: Float!
+  hardwareSpecs: HardwareSpecs!
+  status: NodeStatus!
+  lastPing: DateTime!
+  completedTasks: Int!
+  failedTasks: Int!
+  avgPerformance: Float
+  trainingTasks: [TrainingTask!]! @derivedFrom(field: "node")
+}
+
+type HardwareSpecs @entity(embedded: true) {
+  cpuCores: Int!
+  gpuType: String
+  ramGB: Float!
+  storageGB: Float!
+  bandwidthMbps: Float!
+}
+
+enum NodeStatus {
+  ACTIVE
+  IDLE
+  OFFLINE
+  PENALIZED
+}
+
+# Federated Learning
+type FederatedLearningTask @entity {
+  id: ID! @unique
+  baseModel: ModelMetadata!
+  aggregationParams: JSON!
+  participants: [String!]! # Solana addresses
+  round: Int!
+  currentWeightsHash: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  status: FLTaskStatus!
+}
+
+enum FLTaskStatus {
+  INITIALIZING
+  AWAITING_UPDATES
+  AGGREGATING
+  VALIDATING
+  COMPLETED
+}
+
+# DAO Governance
+type StakeRecord @entity {
+  id: ID! @unique
+  staker: String! # Solana address
+  amount: Float!
+  lockedUntil: DateTime!
+  votingPower: Float!
+  proposalsVoted: [Proposal!]!
+}
+
+type Proposal @entity {
+  id: ID! @unique
+  proposer: String! # Solana address
+  title: String!
+  description: String!
+  category: ProposalCategory!
+  votesFor: Float!
+  votesAgainst: Float!
+  totalVoters: Int!
+  status: ProposalStatus!
+  createdBlock: Int!
+  executionTx: String
+}
+
+enum ProposalCategory {
+  PARAMETER_CHANGE
+  TREASURY
+  PROTOCOL_UPGRADE
+  EMERGENCY
+}
+
+enum ProposalStatus {
+  ACTIVE
+  PASSED
+  REJECTED
+  EXECUTED
+}
+
+# Query Definitions
+type Query {
+  modelById(id: ID!): ModelMetadata
+  modelsByOwner(owner: String!, first: Int = 10, skip: Int = 0): [ModelMetadata!]!
+  activeListings(first: Int = 10, skip: Int = 0): [MarketListing!]!
+  nodePerformanceStats(minStake: Float): [NodeInfo!]!
+  trainingTaskHistory(modelId: ID!): [TrainingTask!]!
+  flTasksByStatus(status: FLTaskStatus!): [FederatedLearningTask!]!
+  datasetByCID(cid: String!): Dataset
+  recentProposals(first: Int = 5): [Proposal!]!
+}
+
+# Mutation Definitions
+type Mutation {
+  createModelMetadata(input: ModelCreateInput!): ModelMetadata!
+  submitTrainingTask(input: TrainingTaskInput!): TrainingTask!
+  purchaseInference(input: InferenceRequestInput!): TransactionHistory!
+  stakeTokens(amount: Float!): StakeRecord!
+  createProposal(input: ProposalInput!): Proposal!
+  updateNodeInfo(specs: HardwareSpecsInput!): NodeInfo!
+}
+
+input ModelCreateInput {
+  framework: String!
+  inputSchema: JSON!
+  outputSchema: JSON!
+  initialParams: JSON
+}
+
+input TrainingTaskInput {
+  modelId: ID!
+  datasetCID: String!
+  params: JSON!
+  maxCost: Float
+}
+
+input InferenceRequestInput {
+  modelId: ID!
+  inputData: JSON!
+  licenseType: LicenseType!
+}
+
+input ProposalInput {
+  title: String!
+  description: String!
+  category: ProposalCategory!
+}
+
+input HardwareSpecsInput {
+  cpuCores: Int!
+  gpuType: String
+  ramGB: Float!
+  storageGB: Float!
+}
+
+# Subscription Definitions
+type Subscription {
+  modelStatusChanged(owner: String!): ModelMetadata!
+  taskProgress(taskId: ID!): TaskStatusUpdate!
+  nodeOnlineStatus: NodeInfo!
+  proposalUpdated: Proposal!
+}
+
+# Federation
+extend type Query @key(fields: "id") {
+  _entities(representations: [_Any!]!): [_Entity]!
+}
+
+scalar _Any
+union _Entity = 
+  ModelMetadata | 
+  TrainingTask |
+  Dataset |
+  MarketListing |
+  NodeInfo |
+  Proposal
