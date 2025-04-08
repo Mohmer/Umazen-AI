@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: Umazen AI Infrastructure API
+  description: |
+    Decentralized AI Model Training & Inference Platform on Solana
+  version: 1.7.0
+  contact:
+    name: Umazen Dev Team
+    email: api@umazen.ai
+    url: https://umazen.ai/docs
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.umazen.ai/v1
+    description: Production Solana Mainnet
+  - url: https://dev.api.umazen.ai/v1
+    description: Development Solana Testnet
+
+tags:
+  - name: Authentication
+    description: Wallet-based authentication
+  - name: Models
+    description: AI model management
+  - name: Training
+    description: Federated learning operations  
+  - name: Inference
+    description: Model execution services
+  - name: Payments
+    description: Blockchain payment operations
+  - name: Monitoring
+    description: Training/inference metrics
+
+paths:
+  /auth/nonce:
+    get:
+      tags: [Authentication]
+      summary: Get authentication nonce
+      responses:
+        200:
+          description: Unique nonce for signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthNonce'
+  
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Wallet login with signed nonce
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        200:
+          description: JWT access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        401:
+          $ref: '#/components/responses/InvalidSignature'
+
+  /models:
+    post:
+      tags: [Models]
+      summary: Upload new AI model
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModelUpload'
+      responses:
+        201:
+          description: Model metadata created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelMetadata'
+        413:
+          $ref: '#/components/responses/ModelTooLarge'
+
+  /models/{modelId}/train:
+    post:
+      tags: [Training]
+      summary: Start federated training job
+      parameters:
+        - $ref: '#/components/parameters/ModelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingConfig'
+      responses:
+        202:
+          description: Training job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingJob'
+        402:
+          $ref: '#/components/responses/InsufficientFunds'
+
+  /models/{modelId}/infer:
+    post:
+      tags: [Inference]
+      summary: Execute model inference
+      parameters:
+        - $ref: '#/components/parameters/ModelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InferenceRequest'
+      responses:
+        200:
+          description: Inference results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferenceResult'
+        429:
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    walletSignature:
+      type: apiKey
+      in: header
+      name: X-Wallet-Signature
+
+  schemas:
+    AuthNonce:
+      type: object
+      properties:
+        nonce:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        expires:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+    AuthRequest:
+      type: object
+      required: [wallet, signature, nonce]
+      properties:
+        wallet:
+          type: string
+          description: Base58 Solana wallet address
+          example: "9aE476sHwHrYqH3Zt8L6WJ5qJ8JwQ2vC1oQ4XyYzZvK"
+        signature:
+          type: string
+          description: Signed nonce
+          example: "3Jp8Zb..."
+        nonce:
+          type: string
+          format: uuid
+
+    ModelMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner:
+          type: string
+          example: "9aE476sHwHrYqH3Zt8L6WJ5qJ8JwQ2vC1oQ4XyYzZvK"
+        modelHash:
+          type: string
+          description: SHA3-256 hash of model binary
+        architecture:
+          type: string
+          enum: [TensorFlow, PyTorch, ONNX]
+        storageUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+
+    TrainingJob:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [Pending, Running, Completed, Failed]
+        participants:
+          type: integer
+          minimum: 0
+        accuracy:
+          type: number
+          format: float
+
+    InferenceResult:
+      type: object
+      properties:
+        output:
+          type: array
+          items:
+            type: number
+            format: float
+        latency:
+          type: number
+          description: Milliseconds
+        proof:
+          type: string
+          description: ZK-SNARK proof
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "INSUFFICIENT_FUNDS"
+        message:
+          type: string
+          example: "Wallet balance too low"
+        txFee:
+          type: number
+          example: 0.0025
+
+  parameters:
+    ModelId:
+      name: modelId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    InvalidSignature:
+      description: Invalid wallet signature
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "INVALID_SIGNATURE"
+            message: "Failed to verify wallet signature"
+
+    ModelTooLarge:
+      description: Model exceeds size limits
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "MODEL_TOO_LARGE"
+            message: "Max model size 2GB exceeded"
+
+    RateLimited:
+      description: API rate limit exceeded  
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "RATE_LIMITED"
+            message: "Too many requests - try again later"
+
+    InsufficientFunds:
+      description: Insufficient wallet balance
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "INSUFFICIENT_FUNDS" 
+            message: "Add SOL to your wallet"
+            txFee: 0.0025
