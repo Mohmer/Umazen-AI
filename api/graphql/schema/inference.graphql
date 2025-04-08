@@ -1,0 +1,217 @@
+# schema/inference.graphql
+
+extend type ModelMetadata {
+  inferenceRequests: [InferenceRequest!]! @derivedFrom(field: "model")
+}
+
+type InferenceRequest @entity {
+  id: ID! @unique
+  model: ModelMetadata!
+  inputData: JSON!
+  status: InferenceStatus!
+  result: InferenceResult
+  billing: BillingInfo
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  startedAt: DateTime
+  completedAt: DateTime
+  requester: String! # Solana address
+  priority: PriorityLevel!
+  retryCount: Int!
+  executionNode: NodeInfo
+  batch: BatchInference
+  streaming: StreamingResponse
+  alerts: [InferenceAlert!]! @derivedFrom(field: "request")
+}
+
+type InferenceResult @entity(embedded: true) {
+  outputData: JSON!
+  confidenceScores: JSON
+  executionTime: Float! # Seconds
+  proof: ProofValidation
+  metrics: PerformanceMetrics!
+  node: NodeInfo
+}
+
+type BillingInfo @entity(embedded: true) {
+  cost: Float!
+  paymentTx: TransactionHistory
+  paymentMethod: PaymentMethod!
+  discount: Float
+  totalPaid: Float!
+}
+
+enum PaymentMethod {
+  TOKEN
+  CRYPTO
+  CREDIT_CARD
+  FREE_TIER
+}
+
+type PerformanceMetrics @entity(embedded: true) {
+  latency: Float! # Milliseconds
+  throughput: Float! # Requests/sec
+  gpuUtilization: Float
+  memoryUsage: Float
+  networkLatency: Float
+  node: NodeInfo
+}
+
+enum InferenceStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  TIMED_OUT
+  CANCELLED
+}
+
+enum PriorityLevel {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+type BatchInference @entity {
+  id: ID! @unique
+  requests: [InferenceRequest!]!
+  params: BatchParams!
+  status: BatchStatus!
+  createdAt: DateTime!
+  completedAt: DateTime
+}
+
+type BatchParams @entity(embedded: true) {
+  maxBatchSize: Int!
+  timeout: Int! # Seconds
+  failStrategy: FailStrategy!
+  retryPolicy: RetryPolicy!
+}
+
+enum FailStrategy {
+  CONTINUE
+  ABORT
+  ISOLATE
+}
+
+enum BatchStatus {
+  COLLECTING
+  PROCESSING
+  COMPLETED
+  PARTIAL_SUCCESS
+  FAILED
+}
+
+type RetryPolicy @entity(embedded: true) {
+  maxRetries: Int!
+  backoffStrategy: BackoffStrategy!
+  retryDelay: Int! # Seconds
+}
+
+enum BackoffStrategy {
+  CONSTANT
+  LINEAR
+  EXPONENTIAL
+}
+
+type StreamingResponse @entity {
+  id: ID! @unique
+  request: InferenceRequest!
+  chunks: [StreamChunk!]! @derivedFrom(field: "stream")
+  status: StreamStatus!
+  createdAt: DateTime!
+}
+
+type StreamChunk @entity {
+  id: ID! @unique
+  stream: StreamingResponse!
+  sequence: Int!
+  data: JSON!
+  isFinal: Boolean!
+  timestamp: DateTime!
+}
+
+enum StreamStatus {
+  ACTIVE
+  COMPLETED
+  CLOSED
+  ERROR
+}
+
+type InferenceAlert @entity {
+  id: ID! @unique
+  request: InferenceRequest!
+  type: AlertType!
+  message: String!
+  severity: AlertSeverity!
+  triggeredAt: DateTime!
+  resolvedAt: DateTime
+}
+
+enum AlertType {
+  LATENCY
+  COST_OVERAGE
+  ACCURACY_DROP
+  NODE_FAILURE
+  BATCH_TIMEOUT
+  PAYMENT_FAILURE
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+extend type Query {
+  inferenceRequest(id: ID!): InferenceRequest
+  requestsByStatus(status: InferenceStatus!): [InferenceRequest!]!
+  requestsByModel(modelId: ID!): [InferenceRequest!]!
+  activeBatches: [BatchInference!]!
+  recentAlerts(severity: AlertSeverity): [InferenceAlert!]!
+}
+
+extend type Mutation {
+  submitInference(input: InferenceInput!): InferenceRequest!
+  cancelInference(id: ID!): InferenceRequest!
+  retryFailedRequest(id: ID!): InferenceRequest!
+  createBatchRequest(input: BatchInput!): BatchInference!
+  updateStreamingResponse(id: ID!, chunk: StreamChunkInput!): StreamingResponse!
+  acknowledgeAlert(id: ID!): InferenceAlert!
+}
+
+input InferenceInput {
+  modelId: ID!
+  inputData: JSON!
+  priority: PriorityLevel = NORMAL
+  paymentMethod: PaymentMethod!
+  stream: Boolean = false
+  batchParams: BatchParamsInput
+}
+
+input BatchParamsInput {
+  maxBatchSize: Int = 10
+  timeout: Int = 300
+  failStrategy: FailStrategy = ABORT
+}
+
+input StreamChunkInput {
+  sequence: Int!
+  data: JSON!
+  isFinal: Boolean = false
+}
+
+input BatchInput {
+  modelId: ID!
+  initialRequests: [ID!]!
+  params: BatchParamsInput!
+}
+
+extend type Subscription {
+  inferenceStatusChanged(requester: String!): InferenceRequest!
+  performanceMetrics: PerformanceMetrics!
+  alertCreated(severity: AlertSeverity): InferenceAlert!
+  streamUpdated(id: ID!): StreamChunk!
+}
