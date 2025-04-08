@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    /* Basic Configuration */
+    "target": "ES2022",                          // Modern ECMAScript features
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],    // Browser + Node.js APIs
+    "module": "NodeNext",                        // Node.js-style module resolution
+    "moduleResolution": "NodeNext",              // Align with Node.js 20+ ESM
+    "types": ["node", "jest"],                   // Global type definitions
+    
+    /* Strict Type-Checking */
+    "strict": true,                              // Enable all strict options
+    "noImplicitAny": true,                       // Require explicit any declarations
+    "strictNullChecks": true,                    // Prevent null/undefined errors
+    "strictFunctionTypes": true,                 // Strict function parameter variance
+    "strictBindCallApply": true,                 // Ensure correct call/bind/apply
+    "strictPropertyInitialization": true,        // Enforce class property init
+    "noImplicitThis": true,                      // Disallow ambiguous 'this'
+    "useUnknownInCatchVariables": true,          // Type catch variables as unknown
+    
+    /* Module Handling */
+    "baseUrl": ".",                              // Base directory for paths
+    "paths": {                                   // Module aliases
+      "@blockchain/*": ["./blockchain/src/*"],
+      "@client/*": ["./client/src/*"],
+      "@zk/*": ["./zk/src/*"]
+    },
+    "resolveJsonModule": true,                   // Allow JSON imports
+    "allowUmdGlobalAccess": true,                // Enable UMD global access
+    
+    /* JavaScript Support */
+    "allowJs": true,                             // Include JavaScript files
+    "checkJs": true,                             // Type-check JavaScript files
+    
+    /* Emit Configuration */
+    "declaration": true,                         // Generate .d.ts files
+    "sourceMap": true,                           // Generate source maps
+    "outDir": "./dist",                          // Output directory
+    "removeComments": false,                     // Preserve comments in output
+    
+    /* Interop Constraints */
+    "esModuleInterop": true,                     // Enable ESM/CJS interop
+    "forceConsistentCasingInFileNames": true,    // Enforce case-sensitive imports
+    "isolatedModules": true,                     // Ensure safe transpilation
+    
+    /* Advanced Type Checking */
+    "noUnusedLocals": true,                      // Error on unused locals
+    "noUnusedParameters": true,                  // Error on unused parameters
+    "noImplicitReturns": true,                   // Require explicit returns
+    "noFallthroughCasesInSwitch": true,          // Prevent switch fallthrough
+    
+    /* Experimental Features */
+    "experimentalDecorators": true,              // Enable decorators
+    "emitDecoratorMetadata": true,               // Enable reflection metadata
+    "useDefineForClassFields": true,             // Modern class fields behavior
+    
+    /* Solana-Specific Optimizations */
+    "skipLibCheck": false,                       // Full type checking for all libs
+    "allowSyntheticDefaultImports": true,        // Required for Anchor SDK
+    
+    /* Path Resolution */
+    "rootDirs": [                                // Logical virtual directories
+      "./src",
+      "./blockchain/programs",
+      "./zk/circuits"
+    ],
+    
+    /* Custom Type Acquisition */
+    "typeRoots": [                               // Custom type locations
+      "./node_modules/@types",
+      "./typings"
+    ]
+  },
+  
+  /* Extended Configuration */
+  "ts-node": {                                   // Configuration for ts-node
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  
+  /* File Inclusion/Exclusion */
+  "include": [
+    "src/**/*.ts",
+    "blockchain/**/*.ts",
+    "client/**/*.tsx",
+    "zk/**/*.ts",
+    "tests/**/*.test.ts",
+    "scripts/**/*.ts"
+  ],
+  
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/__mocks__/*",
+    "solana-program-library/**/*",
+    ".anchor/*"
+  ],
+  
+  /* Multi-Project References */
+  "references": [                                // Project dependencies
+    { "path": "./blockchain/tsconfig.json" },
+    { "path": "./client/tsconfig.json" },
+    { "path": "./zk/tsconfig.json" }
+  ]
+}
